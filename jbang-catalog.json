@@ -1,0 +1,10 @@
+{
+  "catalogs": {},
+  "aliases": {
+    "main": {
+      "script-ref": "src/main.java",
+      "properties": {}
+    }
+  },
+  "templates": {}
+}
