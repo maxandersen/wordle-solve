@@ -64,7 +64,7 @@ public class main {
 						word = game.nextWord();
 						result = wordle.typeWord(word);
 						if (result == null) {
-							System.out.printf(word + " not in Wordle database");
+							System.out.printf(word + " not in Wordle database\n");
 							game.remove(word);
 						}
 					} while (result == null);

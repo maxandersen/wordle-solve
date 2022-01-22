@@ -2,6 +2,17 @@
 
 This script attempts to solve todays Wordle.
 
+Video:
+
+ifdef::env-github[]
+image:https://img.youtube.com/vi/BL7mLz2kEys/maxresdefault.jpg[link=https://youtu.be/BL7mLz2kEys]
+endif::[]
+
+ifndef::env-github[]
+video::BL7mLz2kEys[youtube]
+endif::[]
+
+
 To run it install https://jbang.dev/downloads[jbang]:
 ```
 curl -Ls https://sh.jbang.dev | bash -s - app setup
