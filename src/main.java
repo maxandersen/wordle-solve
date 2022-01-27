@@ -1,3 +1,4 @@
+//DEPS info.picocli:picocli:4.6.2
 //DEPS com.microsoft.playwright:playwright:1.18.0
 //FILES 5letterwords.txt
 //JAVA 17
@@ -9,6 +10,7 @@ import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
+import picocli.CommandLine;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,6 +25,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -31,9 +34,23 @@ interface WordSelector {
 	String selectWord(List<String> words);
 }
 
-public class main {
+@CommandLine.Command(name = "wordle-solve", mixinStandardHelpOptions = true, version = "wordle-solve 1.0",
+		description = "wordle-solver with jbang")
+public class main implements Callable<Integer>	 {
+
+	@CommandLine.Option(names="--headless",defaultValue = "true")
+	boolean headless;
+
+	@CommandLine.Option(names="--word",defaultValue = "soare") //// https://bert.org/2021/11/24/the-best-starting-word-in-wordle/
+	String word;
 
 	public static void main(String[] args) throws IOException {
+		int exitCode = new CommandLine(new main()).execute(args);
+		System.exit(exitCode);
+	}
+
+	@Override
+	public Integer call() throws Exception {
 		System.out.println("Loading words...");
 		List<String> words = loadWords();
 		System.out.printf("%d words loaded\n", words.size());
@@ -47,16 +64,16 @@ public class main {
 			public String selectWord(List<String> words) {
 				selection++;
 				if(selection==1) {
-					return "soare"; // https://bert.org/2021/11/24/the-best-starting-word-in-wordle/
+					return word;
 				} else {
 					return words.get(random.nextInt(words.size()));
 				}
 			}
 		});
-		
+
 		try (Wordle wordle = new Wordle()) {
 			try {
-				wordle.init();
+				wordle.init(headless);
 				for (int i = 0; i < 6; i++) {
 					String word;
 					WordTester.CharResult[] result;
@@ -80,11 +97,13 @@ public class main {
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
+				return 1;
 			}
 			//wordle.waitForClose();
 		}
+		return 0;
 	}
-	
+
 	private static List<String> loadWords() throws IOException {
 		try (var is = main.class.getResourceAsStream("/5letterwords.txt")) {
 			assert is != null;
@@ -133,11 +152,11 @@ class Wordle implements AutoCloseable {
 	Page page;
 	int row = 1;
 
-	public void init() {
+	public void init(boolean headless) {
 		System.out.println("Loading Wordle in browser...");
 		playwright = Playwright.create();
 		browser = playwright.firefox()
-				.launch(new BrowserType.LaunchOptions().setHeadless(false));
+				.launch(new BrowserType.LaunchOptions().setHeadless(headless));
 		page = browser.newPage();
 		page.navigate("https://www.powerlanguage.co.uk/wordle/");
 		page.click("game-icon[icon='close']");
